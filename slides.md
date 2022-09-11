@@ -1,35 +1,25 @@
 ---
-# try also 'default' to start simple
-theme: seriph
-# random image from a curated Unsplash collection by Anthony
-# like them? see https://unsplash.com/collections/94734566/slidev
+theme: default
 background: https://source.unsplash.com/collection/94734566/1920x1080
-# apply any windi css classes to the current slide
-class: 'text-center'
-# https://sli.dev/custom/highlighters.html
+class: text-center
 highlighter: shiki
-# show line numbers in code blocks
 lineNumbers: false
-# some information about the slides, markdown enabled
 info: |
   ## Slidev Starter Template
   Presentation slides for developers.
 
   Learn more at [Sli.dev](https://sli.dev)
-# persist drawings in exports and build
 drawings:
   persist: false
-# use UnoCSS (experimental)
 css: unocss
+title: わかった気になる<br/>CRDT にを使った共同編集
 ---
 
-# 分かった気になる<br/>CRDT による共同編集
-
-Presentation slides for developers
+# わかった気になる<br/>CRDT を使った共同編集
 
 <div class="pt-12">
   <span @click="$slidev.nav.next" class="px-2 py-1 rounded cursor-pointer" hover="bg-white bg-opacity-10">
-    Press Space for next page <carbon:arrow-right class="inline"/>
+    KentoMoriwaki / Henry, inc.
   </span>
 </div>
 
@@ -44,24 +34,20 @@ Presentation slides for developers
 </div>
 
 <!--
-The last comment block of each slide will be treated as slide notes. It will be visible and editable in Presenter Mode along with the slide. [Read more in the docs](https://sli.dev/guide/syntax.html#notes)
+The last comment block of each slide will be treated as slide notes. It will be visible and editable in Presenter Mode along with the slide. [Read more in the docs](https://sli.dev/guide/syntax.html#notes
+これ編集できるの？
 -->
 
 ---
 
 # 背景とゴール
 
-- アプリケーションを開発していると「この機能を共同編集にしたいな」っていう場面はよくある。
-- 「でも作ったことないし、大変そうだな」とハードルが高くて、優先度を上げられない。
-- 確かに簡単ではないが、心理的なハードルも大きい。
+- アプリケーション開発をしていると「この機能を共同編集にしたいな」っていう場面はよくある。
+- 「でも作ったことないし、ロジックも複雑そうだな」とハードルが高くて、優先度を上げられない。
 
-<br>
-<br>
+## 「自分も作れそう」と思ってほしい
 
-## なんか分かった気になって「自分も作れそう」と思ってもらうことがゴール
-
-- WYSIWYG エディタを対象にした話ですが、他のアプリケーションにも適用できます
-- サーバーサイドの話は今回はありません
+その中でも OT がよく紹介されていて、CRDT はあまり情報がなかったりするので OT を選択することが多いが、CRDT も現実的な選択肢であることを知ってほしい
 
 <!--
 You can have `style` tag in markdown to override the style for the current page.
@@ -70,13 +56,7 @@ Learn more: https://sli.dev/guide/syntax#embedded-styles
 
 <style>
 h1 {
-  background-color: #2B90B6;
-  background-image: linear-gradient(45deg, #4EC5D4 10%, #146b8c 20%);
-  background-size: 100%;
-  -webkit-background-clip: text;
-  -moz-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  -moz-text-fill-color: transparent;
+  /*  */
 }
 </style>
 
@@ -95,46 +75,78 @@ Henry では、Web ベースの電子カルテを作っています。
 - Draft.js からの移行
 
 ---
+layout: section
+---
 
-# OT と CRDT: データの一貫性を保つ仕組み
+# 共同編集を支える技術
 
-共同編集の難しい点は、変更がコンフリクトしたときに、どうやって一貫性を担保するか。
-
-（複数のユーザーが同時に同じ箇所に文字を打ったとき、ユーザーによって表示が異ならないようにする）
-
-## OT と CRDT という二つの仕組みが有名
+## OT と CRDT
 
 ---
 
-# OT
+# データの一貫性を保つ技術
 
-プレーンテキストを共同編集するのがベース。
+- 複数人のユーザーが一つの文書を操作したときに、全ての操作がそれぞれのユーザーに行き渡ったときに、全てのユーザーが見ている文書が全く同じであることが求められる
+  - 文字の順番が入れ替わってはいけない
 
-簡単にいうと、何文字目にどういう操作をしたのかを蓄積して、この状態の 3 文字目ってことは、今の状態だと 4 文字目 ってことだな、というのを計算する方法。
+いくつも技術があるが、ここでは最も多く使われているであろう OT と、今回紹介したい CRDT を説明する
 
 ---
 
-# CRDT
+# 1. OT
 
-コンフリクトしないように設計されたデータをもとにした技術。 
+Operational transformation
+
+シンプルなテキストを共同編集するための技術で、30年ほどの歴史がある。
+
+簡単にいうと、何文字目にどういう操作をしたのかの歴史を持っておくことで、このタイミングで5文字目に文字を挿入したってことは、その間にここに3文字挿入されているから、8文字目に挿入するのが正解だな、という計算を行うこと。
+
+- 基本的には中央サーバーが必要で、順番を管理してあげる必要がある
+- 直感的で素直な実装だが、複雑なデータ構造や操作を扱おうとすると、どんどん実装が複雑になってしまうデメリット
+
+OT を理解するのに最適な Website
+https://operational-transformation.github.io/
+
+---
+
+# 2. CRDT
+
+Conflict-free Replicated Data Type
+
+コンフリクトの解消が難しいなら、コンフリクトしないように設計されたデータをもとにした技術。
+テキストの編集だけじゃなくて、さまざまなデータ型を、分散して扱えるようにすることを目指した技術。
 
 各 client がデータのコピーを持ってそれを編集し、それらをコンフリクトなく同期することができる。
 
+歴史はあるが、データが膨れ上がったり、操作が重たかったりと、実用が難しかったが、技術とコンピューティングの進化で実用的になった。
+
 CRDT にもいくつか派生があり、ここでは Yjs が用いている CvRDT の話。
+
+- 汎用的で、様々なデータ型に対応しやすい
+- CRDT は P2P が可能で、中央集権サーバーが必要ないが、普通のアプリケーションなら実用上中央サーバーは作ることが多い
+  - P2P なら CRDT 一択
+
+基本的なデータ構造は後ほど説明します
+
+CRDT といえばよく取り上げられるのがこの記事。
+https://josephg.com/blog/crdts-are-the-future/
+
+
+<!--
+意訳「なぜ CRDT が俺たちの魂を震えさせるのか」
+-->
 
 ---
 
-# CRDT のデータ構造
+# OT と CRDT の使い分け
 
-エディタでは、文字列を操作しているように見えるが、実はその裏にある木構造を操作している。
+一概に、こういう場合はこちらがいいとは言い切れないが、目安として
 
-この木構造がコアで、それぞれの要素が　Parent / Left / Right を持つ。
+- 単純なテキストデータなら OT が最適
+- それ以外の複雑なデータが含まれる場合は **CRDT を検討する価値がある**
+- 中央サーバーなしで、 P2P でやりとりしたければ CRDT
 
-それらの操作を、クライアントごとの配列として集めたもの。
-
-全く同じ場所に入れる場合は、clientID が小さい方が勝つ。
-
-ただ文字列を操作しているように見えるが、それぞれの文字に ID が振られていて、裏側の木構造を操作していることを意識する。
+Henry では、文書内に埋め込みできるデータがリッチであったり、多様なコンテンツを共同編集可能にしたかったため、 CRDT を検討して採用した。
 
 ---
 
@@ -150,20 +162,23 @@ CRDT を使っている。 https://www.figma.com/ja/blog/how-figmas-multiplayer-
 
 ### JupyterLab
 
-今回紹介する Yjs を使っている
+今回紹介する Yjs を使った CRDT で共同編集を実装。
 
 ### Redis
 
-地理分散システムに CRDT が使われている
+地理分散システムに CRDT が使われている。共同編集だけじゃないよ。CRDT を使った分散DBは複数存在している。
 
 ---
 
 # 登場するライブラリの紹介
 
+周辺のライブラリを合わせて説明することで、 Yjs はどういう責務を担っているかを説明する
+
 - Yjs
 - ProseMirror
 - y-prosemirror
 - lib0
+- [ ] 図を挿入する
 
 ---
 
@@ -180,7 +195,7 @@ map.set("one", "1");
 map.set("two", "2");
 ```
 
-汎用的なデータ構造が用意されている。
+汎用的なデータ構造が用意されている。 Map Array Text XmlText XmlElement など。 Map をネストしたりもできる。
 
 使いこなすために知っておいてほしいことを後のページで紹介する。
 
@@ -193,6 +208,8 @@ WYSIWGY エディタのライブラリ。
 
 エディタライブラリの選定基準は難しいが、筆者の経験値から選定。
 何を使っても良いが、Yjs が公式に binding を用意してくれているものが便利。
+
+他にも、Quill や Slate, Lexical などが使える。
 
 ## Tiptap
 
@@ -249,13 +266,89 @@ for (const i = 0; i < length; i++) {
 
 ---
 
-# 同期プロトコル
+# 基本的な操作とデータ構造
+
+どのような操作を行うと、どういうデータがやりとりされるのかを解説
+
+- 基本的なデータ構造
+- 追記
+- 削除
+- 同期
+- 永続化
+- 編集履歴
+- Garbage Collection
+
+---
+
+# CRDT のデータ構造
+
+エディタでは、文字列を操作しているように見えるが、実はその裏にある木構造を操作している。
+
+この木構造がコアで、それぞれの要素が　Parent / Left / Right の ID を持つ。
+
+それらの操作を、クライアントごとの配列として集めたもの。
+
+ClientStrcuts -(integrate)-> Tree -> XML
+
+全く同じ場所に入れる場合は、clientID が小さい方が勝つ。
+clientID は初期化時にランダムに振られる。
+
+ただ文字列を操作しているように見えるが、それぞれの文字に ID が振られていて、裏側の木構造を操作していることを意識する。
+
+- [ ] 図を挿入
+
+---
+
+# 追記
+
+- 自身の clientID に操作を追記していく
+- 追記した分のデータを他の Client に送る
+- ClientStruct と呼ぶ
+
+ネットワークで二つの client が繋がっていることを想定する
 
 Client-Server 方式や、 P2P など幅広い選択肢が取れる。
 
 二つの Client(Server) がある時、両者が同じデータを持っている状態にするプロトコル。
 
-最低限のデータ量だけで同期できるように、両者の差分だけを送り合う仕組みがある。
+---
+
+# 削除
+
+- これだけ追記じゃなくて、削除フラグを立てることになっている
+- DeleteSet の説明
+
+追記していくだけと書いたが、主にパフォーマンスの観点から、削除は追記じゃない。
+
+削除された要素に、削除フラグを立てる。
+
+なので、削除されたデータは残り続けるので、Garbage collection する必要がある（後述）。
+
+## DeleteSet の構造
+
+ここからここは削除しました、というデータ。
+
+---
+
+# Update
+
+追記と削除をまとめたものの名称
+
+基本的には、これがネットワーク上を飛び交う。
+
+`Y.logUpdate` で中身を確認できる。
+
+---
+
+# 同期
+
+初回の読み込みや、再接続時に完全にデータを同期するプロトコルは？
+
+素直にやるなら、両方のデータを merge すればよさそうだが、状態の全てを送り合うのは無駄が多いので、差分だけ送れる仕組みがある。
+
+## StateVector の説明
+
+わたしはこれだけの状態を持っています、を表すデータ。
 
 ---
 
@@ -268,27 +361,18 @@ Client-Server 方式や、 P2P など幅広い選択肢が取れる。
 
 ---
 
-# StateVector
+# データの永続化
 
-わたしはこれだけの状態を持っています、を表すデータ。
+今のままでは、メモリ上に展開されているデータだけなので、リロードしたり再起動したら消えてしまう。
 
----
+保存はすごく単純で、全ての状態を Update として書き出すだけ。
 
-# 削除の操作
+リストアは、その Update を適用すれば良いだけ。
 
-追記していくだけと書いたが、パフォーマンスの観点から、削除は追記じゃない。
-
-削除された要素に、削除フラグを立てる。
-
-なので、削除されたデータは残り続けるので、Garbage collection する必要がある（後述）。
-
-## DeleteSet の構造
-
-ここからここは削除しました、というデータ。
 
 ---
 
-# Snapshot
+# 編集履歴
 
 State の特定の地点を表すデータ。これがあれば、その地点の状態まで戻ることができる。
 
@@ -315,7 +399,7 @@ const ydoc = new Y.Doc({ gc: true })
 処理速度とメモリのトレードオフ
 
 基本方針
-- クライアントのようは揮発性の高いデータは、 GC を使わない。もちろんメモリがシビアな場合はやってもよい。
+- クライアントのようは揮発性の高いデータは、 GC を使わない。もちろんメモリがシビアな場合はやってもよい。Undo のデータも保持するので、GC は効果が小さい。
 - サーバーサイドでそのまま永続化するようなデータに関しては GC しておかないと、どんどんゴミデータが溜まって肥大化する
 
 ---
@@ -353,8 +437,6 @@ const v2 = Y.encodeStateAsUpdateV2(ydoc);
 Y.applyUpdate(ydoc, v1);
 Y.applyUpdateV2(ydoc, v2);
 ```
-
----
 
 # その他の注意点
 
