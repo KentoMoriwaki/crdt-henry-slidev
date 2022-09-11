@@ -87,7 +87,7 @@ layout: section
 # データの一貫性を保つ技術
 
 - 複数人のユーザーが一つの文書を操作したときに、全ての操作がそれぞれのユーザーに行き渡ったときに、全てのユーザーが見ている文書が全く同じであることが求められる
-  - 文字の順番が入れ替わってはいけない
+  - 同じ場所に同時に文字を入れても、文字の順番が入れ替わってはいけない
 
 いくつも技術があるが、ここでは最も多く使われているであろう OT と、今回紹介したい CRDT を説明する
 
@@ -99,41 +99,44 @@ Operational transformation
 
 シンプルなテキストを共同編集するための技術で、30年ほどの歴史がある。
 
-簡単にいうと、何文字目にどういう操作をしたのかの歴史を持っておくことで、このタイミングで5文字目に文字を挿入したってことは、その間にここに3文字挿入されているから、8文字目に挿入するのが正解だな、という計算を行うこと。
+簡単にいうと、何文字目にどういう操作をしたのかの歴史を持っておくことで、このタイミングで5文字目に文字を挿入したってことは、その間にそれより前に3文字挿入されているから、8文字目に挿入するのが正解だな、という計算を行うこと。
 
-- 基本的には中央サーバーが必要で、順番を管理してあげる必要がある
-- 直感的で素直な実装だが、複雑なデータ構造や操作を扱おうとすると、どんどん実装が複雑になってしまうデメリット
+- 直感的で素直な実装だが、複雑なデータ構造や操作を扱おうとすると、どんどん実装が複雑になってしまう
+- 基本的には中央サーバーが必要
 
-OT を理解するのに最適な Website
-https://operational-transformation.github.io/
+---
+
+# 1. OT
+
+OT の挙動を step by step で理解できるサイト https://operational-transformation.github.io/
+
+<img src="images/ot-screenshot.png" class="h-100 m-auto rounded shadow-lg">
 
 ---
 
 # 2. CRDT
 
-Conflict-free Replicated Data Type
+Conflict-free replicated data type
 
-コンフリクトの解消が難しいなら、コンフリクトしないように設計されたデータをもとにした技術。
-テキストの編集だけじゃなくて、さまざまなデータ型を、分散して扱えるようにすることを目指した技術。
+そもそもコンフリクトしないようなデータ型を定義することで一貫性を保つ仕組み
 
-各 client がデータのコピーを持ってそれを編集し、それらをコンフリクトなく同期することができる。
+10年ほどの歴史の比較的新しい技術だが、データサイズや計算速度の懸念点があったが、技術とコンピューティングの進化で実用的になった
 
-歴史はあるが、データが膨れ上がったり、操作が重たかったりと、実用が難しかったが、技術とコンピューティングの進化で実用的になった。
+- 汎用的で、組み合わせで複雑なデータにも対応しやすい
+- 中央サーバーなしで P2P でのやりとりが可能
 
-CRDT にもいくつか派生があり、ここでは Yjs が用いている CvRDT の話。
+データ構造の詳細などは、後ほど説明する
 
-- 汎用的で、様々なデータ型に対応しやすい
-- CRDT は P2P が可能で、中央集権サーバーが必要ないが、普通のアプリケーションなら実用上中央サーバーは作ることが多い
-  - P2P なら CRDT 一択
+---
 
-基本的なデータ構造は後ほど説明します
+# 2. CRDT
 
-CRDT といえばよく取り上げられるのがこの記事。
-https://josephg.com/blog/crdts-are-the-future/
+CRDT やるなら読んでおきたい https://josephg.com/blog/crdts-are-the-future/
 
+<img src="images/crdt-screenshot.png" class="h-100 m-auto rounded shadow-lg">
 
 <!--
-意訳「なぜ CRDT が俺たちの魂を震えさせるのか」
+「なぜ CRDT が俺たちの魂を震えさせるのか」的な記事
 -->
 
 ---
@@ -142,7 +145,7 @@ https://josephg.com/blog/crdts-are-the-future/
 
 一概に、こういう場合はこちらがいいとは言い切れないが、目安として
 
-- 単純なテキストデータなら OT が最適
+- シンプルなテキストデータだけなら OT が最適
 - それ以外の複雑なデータが含まれる場合は **CRDT を検討する価値がある**
 - 中央サーバーなしで、 P2P でやりとりしたければ CRDT
 
@@ -152,154 +155,228 @@ Henry では、文書内に埋め込みできるデータがリッチであっ�
 
 # CRDT を使った事例
 
-### CodeSandbox
+### [CodeSandbox](https://codesandbox.io/)
 
-コードエディタ部分は OT で、ファイルシステムなどは CRDT。わかりやすい使い分け。
+コードエディタ部分は OT で、ファイルシステムなどは CRDT と、模範的な使い分け
 
-### Figma
+### [Figma](https://figma.com/)
 
-CRDT を使っている。 https://www.figma.com/ja/blog/how-figmas-multiplayer-technology-works/
+独自実装の CRDT を使っている https://www.figma.com/ja/blog/how-figmas-multiplayer-technology-works/
 
-### JupyterLab
+### [JupyterLab](https://jupyterlab.readthedocs.io/en/stable/)
 
-今回紹介する Yjs を使った CRDT で共同編集を実装。
+今回紹介する Yjs を使った CRDT で共同編集を実装
 
-### Redis
+### [Redis](https://redis.io/)
 
-地理分散システムに CRDT が使われている。共同編集だけじゃないよ。CRDT を使った分散DBは複数存在している。
+地理分散システムに CRDT が使われている https://redis.com/blog/diving-into-crdts/
+
+CRDT を使った分散 DB は複数存在している
+
+---
+layout: section
+---
+
+# ライブラリの紹介
+
+## Yjs と周辺ライブラリ
 
 ---
 
-# 登場するライブラリの紹介
+# ライブラリの紹介
 
 周辺のライブラリを合わせて説明することで、 Yjs はどういう責務を担っているかを説明する
 
-- Yjs
-- ProseMirror
-- y-prosemirror
-- lib0
-- [ ] 図を挿入する
+<figure>
+  <img src="images/libraries.png" class="w-130 m-auto">
+  <figcaption>
+    Yjs / ProseMirror / y-prosemirror / lib0 の関係
+  </figcaption>
+</figure>
 
 ---
 
 # Yjs
 
-CRDT の JavaScript 実装
+https://docs.yjs.dev/
 
-```ts
+CRDT の JavaScript 実装の一つで、Map / Array / XML など汎用的なデータ型が提供されている
+
+内部の構造や挙動は後のページで紹介する
+
+<figure>
+
+```ts {all|1-3|5-7|9|11-15}
 import * as Y from "yjs";
 
-const ydoc = new Y.Doc();
-const map = ydoc.getMap("foo");
-map.set("one", "1");
-map.set("two", "2");
+const ydoc = new Y.Doc(); // ドキュメントの作成
+
+ydoc.on("update", (update: Uint8Array) => {
+  // 変更イベントを受け取り、変更内容をサーバーや他のクライアントに送ることができる
+});
+
+const map = ydoc.getMap("foo"); // Top-level に foo という名前の Map を定義する
+
+ydoc.transact(() => { // 複数の変更をひとまとめにするための Transaction の発行
+  map.set("one", 1); // "one" のキーに、 1 の値を設定
+  map.set("two", new Y.Array()); // "two" のキーに、配列の値を設定
+  map.get("two").push(2); // "two" のキーに、 2 を push
+});
 ```
 
-汎用的なデータ構造が用意されている。 Map Array Text XmlText XmlElement など。 Map をネストしたりもできる。
-
-使いこなすために知っておいてほしいことを後のページで紹介する。
-
+<figcaption> Yjs のサンプルコード </figcaption>
+</figure>
 
 ---
 
 # ProseMirror
 
-WYSIWGY エディタのライブラリ。
+https://prosemirror.net/
 
-エディタライブラリの選定基準は難しいが、筆者の経験値から選定。
-何を使っても良いが、Yjs が公式に binding を用意してくれているものが便利。
+WYSIWYG エディタのライブラリ
 
-他にも、Quill や Slate, Lexical などが使える。
+エディタライブラリは様々あるが、 Yjs と使うなら binding が用意されているものがオススメ
 
-## Tiptap
+他にも [Quill](https://quilljs.com/) / [Slate](https://www.slatejs.org/) / [Lexical](https://lexical.dev/) なども選択肢で、日本語 IME の対応、モバイル対応、API の使いやすさなど、プロトタイプしながら自身のアプリケーションの要件を満たすかを検討する
 
-ProseMirror を React で使いやすくするための技術。
+### Tiptap
 
-React Component を埋め込めるようにするために便利だが、 ProseMirror 自体を理解していないと使うのは難しい。
+https://tiptap.dev/
+
+ProseMirror を React で使いやすくするためのライブラリ
+
+エディタ内に React や Vue の Component を埋め込めるようにするために便利だが、ProseMirror 自体を理解していないと使うのは難しいので、必須ではない
+
+<style>
+h3 {
+  margin-top: 25px;
+}
+h3 + p {
+  margin-top: 12px;
+  opacity: 0.5;
+}
+</style>
 
 ---
 
 # y-prosemirror
 
-Yjs と ProseMirror の binding
+https://github.com/yjs/y-prosemirror
 
-自動的に両者の状態を同期してくれるので、基本は ProseMirror 側だけで機能開発すれば良いが、ハマりポイントがある。
+Yjs と ProseMirror の状態を同期してくれるライブラリ
 
-両者の操作ごとに相互に変換して適用するのではなくて、差分を検知して埋めるアルゴリズムのため、予期しない形で変更が適用されることがある。
+これを使えば、基本的にはエディタの機能を開発するときは ProseMirror のことだけを考えれば良いが、以下の点に注意する必要がある
 
-また、ProseMirror と Yjs のデータ構造の都合で、互換性がないパターンがある。（例えば、同じ場所に同じ名前の mark を複数つけることはできない。）
-
----
-
-# lib0
-
-主に encoding と decoding に使われているライブラリ。効率よくデータを詰め込むために使われる。
-
-ネットワークでやりとりされるデータや、永続化するデータは、これで作られた binary (Uint8Array) なので、パッとみたときにどういうデータがやりとりされているか分からなくて、デバッグに困ることがある。
-
-なので、基本的な使い方と、使われるデータ構造とその意味、その中身の見方を覚えておけば得する。
+- 両者の操作を相互に変換して適用するのではなくて、差分を検知して埋めるアルゴリズムのため、実際にエディタで操作したのとは違う形で Yjs に変更が加えられることがある
+- ProseMirror と Yjs のデータ構造には完全な互換性はないので、同期すると壊れる可能性がある
+  - 例えば、同じ場所に同じ名前の Mark を複数つけることはできない
 
 ---
 
 # lib0
 
-```js {all|4|9|all}
+https://github.com/dmonad/lib0
+
+Yjs の作者が作っている便利ライブラリで、Yjs 内で主に encoding と decoding の用途に使われている
+
+軽量化のために、ネットワークでやりとりされるデータや永続化するデータなどは、ほぼ全てこの lib0 で作られたバイナリ (Uint8Array) なので、パッとみたときにどういうデータがやりとりされているか分からなくてデバッグに困ることがある
+
+次のページの基本的な使い方と、後で紹介する Yjs でよく使われるデータの意味と構造を知っていれば、開発しやすくなる
+
+---
+
+# lib0
+
+JSON と違って、エンコードする側とデコードする側の両方が、どういう順序でどういうデータが入っているかを知っている必要がある
+
+<figure>
+
+```js {all|1-4|6-10|11-13|14-18}
 import encoding from "lib0/encoding";
 import decoding from "lib0/decoding";
 
-const data = ["foo", "bar", "baz"]; // encode したいデータ
+const data = ["foo", "bar", "baz"]; // 今回エンコードしたいデータ
 
-const encoder = encoding.createEncoder();
-encoding.writeVarUint(encoder, data.length);
+const encoder = encoding.createEncoder(); // encoder を作る
+encoding.writeVarUint(encoder, data.length); // 最初に data の長さを詰めておく
 for (const str of data) {
-  encoding.writeVarString(encoder, str);
+  encoding.writeVarString(encoder, str); // 前から順番に、文字列を詰めていく
 }
-const message = encoding.toUint8Array(encoder);
-
-const decoder = decoding.createDecoder(message);
-const length = decoding.readVarUint(decoder);
-for (const i = 0; i < length; i++) {
-  const str = decoding.readVarString(decoder);
-  assert(str === data[i]);
+const message = encoding.toUint8Array(encoder); // バイナリ(Uint8Array) を出力する
+// 他のクライアントに message を渡すことを想定
+const decoder = decoding.createDecoder(message); // 受け取ったバイナリから decoder を作る
+const length = decoding.readVarUint(decoder); // 最初に data 配列の長さを読み取る
+for (const i = 0; i < length; i++) { // 読み取った長さ分だけループする
+  const str = decoding.readVarString(decoder); // 文字列を読み取る
+  assert(str === data[i]); // 元の配列を同じデータが入っていることを確認
 }
 ```
 
+<figcaption>lib0 のサンプルコード</figcaption>
+</figure>
+
+---
+layout: section
 ---
 
-# 基本的な操作とデータ構造
+# 内部構造と基本的な操作
 
-どのような操作を行うと、どういうデータがやりとりされるのかを解説
-
-- 基本的なデータ構造
-- 追記
-- 削除
-- 同期
-- 永続化
-- 編集履歴
-- Garbage Collection
+どういう操作をすると、どのようなデータがやりとりされるのかを理解する
 
 ---
 
-# CRDT のデータ構造
+# CRDT の内部構造
 
-エディタでは、文字列を操作しているように見えるが、実はその裏にある木構造を操作している。
+StructStore → Tree → XML の 3層構造
 
-この木構造がコアで、それぞれの要素が　Parent / Left / Right の ID を持つ。
+エディタから見たらただの XML を操作しているように見えるが、その裏側に2つの層がある
 
-それらの操作を、クライアントごとの配列として集めたもの。
-
-ClientStrcuts -(integrate)-> Tree -> XML
-
-全く同じ場所に入れる場合は、clientID が小さい方が勝つ。
-clientID は初期化時にランダムに振られる。
-
-ただ文字列を操作しているように見えるが、それぞれの文字に ID が振られていて、裏側の木構造を操作していることを意識する。
-
-- [ ] 図を挿入
+<figure class="mt-15">
+  <img src="images/crdt-layers.png" class="h-60 m-auto">
+  <figcaption>
+    3つの層のイメージ図
+  </figcaption>
+</figure>
 
 ---
 
-# 追記
+# 中心の Tree
+
+一つ一つの操作をノード(=Item)とする木構造
+
+- 各要素が Parent / Left / Right への参照をもつ木構造
+  - p タグの先頭の "A" の次に "b" と入力したら、Parent に p タグが、 Left に文字 "A" が入る
+  - (効率化のために連続する文字が一つの要素に入る場合もある)
+
+<figure class="mt-4">
+  <img src="images/crdt-tree.png" class="h-65 m-auto">
+  <figcaption>
+    Parent / Left / Right への参照をもつ木構造
+  </figcaption>
+</figure>
+
+---
+
+# StructStore にデータを蓄積
+
+Tree の各要素である Item をクライアントごとに順番に積み上げたもの
+
+<!-- `type StructStore = new Map<number, Item[]>` -->
+
+- 各 Item は ID = { clientID, clock } を持つ
+  - クライアントごとに初期化時にランダムな数字で clientID が振られ、操作ごとに clock が1ずつ増える。Parent などはそれぞれ参照先の ID として持つ。
+- これを integrate することで、 Tree が得られる
+
+<figure class="mt-4">
+  <img src="images/crdt-client-structs.png" class="h-60 m-auto" style="transform: translateX(40px)">
+  <figcaption>
+    StructStore(各要素がItem)、今の clientID は 111
+  </figcaption>
+</figure>
+
+---
+
+# 追記 の挙動
 
 - 自身の clientID に操作を追記していく
 - 追記した分のデータを他の Client に送る
