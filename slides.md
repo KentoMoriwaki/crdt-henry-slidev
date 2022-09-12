@@ -1,6 +1,6 @@
 ---
 theme: default
-background: images/title-bg.jpg
+background: /images/title-bg.jpg
 class: text-center
 highlighter: shiki
 lineNumbers: true
@@ -43,7 +43,7 @@ title: わかった気になる<br/>CRDT を使った共同編集
 
 ## 「自分でも共同編集作れそう」と思ってほしい
 
-その上で共同編集の技術としてよく紹介されている OT だけでなく、 CRDT も現実的な選択肢であることを知ってほしい
+その上で共同編集の技術としてよく知られている OT だけでなく、 CRDT も現実的な選択肢であることを知ってほしい
 
 <style>
 h2 {
@@ -58,7 +58,7 @@ h2 {
 多機能なブロックの埋め込み / 編集履歴 / 複数人での共同編集 / Draft.js からの移行、など
 
 <figure>
-  <img src="images/henry-wip.png" class="w-130 m-auto rounded shadow-lg">
+  <img src="/images/henry-wip.png" class="w-130 m-auto rounded shadow-lg">
   <figcaption>
     開発中のカルテ画面
   </figcaption>
@@ -87,12 +87,12 @@ layout: section
 
 Operational transformation
 
-シンプルなテキストを共同編集するための技術で、30年ほどの歴史がある
+シンプルなテキストを共同編集するために生まれた技術で、30年ほどの歴史がある
 
-簡単にいうと、何文字目にどういう操作をしたのかの歴史を持っておくことで、このタイミングで5文字目に文字を挿入したってことは、その間にそれより前に3文字挿入されているから 8文字目に挿入するのが正解だな、という計算を行うこと
+簡単にいうと、何文字目にどういう操作をしたのかの履歴を持っておくことで、このタイミングで5文字目に文字を挿入したってことは、その後に3文字挿入されているから8文字目に挿入するのが正解だな、という計算を行うこと
 
 - 直感的で素直な実装だが、複雑なデータ構造や操作を扱おうとすると、どんどん実装が複雑になってしまう
-- 基本的には中央サーバーが必要
+- (基本的には中央サーバーが必要)
 
 ---
 
@@ -100,7 +100,7 @@ Operational transformation
 
 OT の挙動を step by step で理解できるサイト https://operational-transformation.github.io/
 
-<img src="images/ot-screenshot.png" class="h-100 m-auto rounded shadow-lg">
+<img src="/images/ot-screenshot.png" class="h-100 m-auto rounded shadow-lg">
 
 ---
 
@@ -112,8 +112,8 @@ Conflict-free replicated data type
 
 10年ほどの歴史の比較的新しい技術だが、データサイズや計算速度の懸念点があったが、技術とコンピューティングの進化で実用的になった
 
-- 汎用的で、組み合わせで複雑なデータにも対応しやすい
-- 中央サーバーなしで P2P でのやりとりが可能
+- 汎用性が高く、複雑なデータにも対応しやすい
+- (中央サーバーなしで P2P でのやりとりが可能)
 
 データ構造の詳細などは、後ほど説明する
 
@@ -123,7 +123,7 @@ Conflict-free replicated data type
 
 CRDT やるなら読んでおきたい https://josephg.com/blog/crdts-are-the-future/
 
-<img src="images/crdt-screenshot.png" class="h-100 m-auto rounded shadow-lg">
+<img src="/images/crdt-screenshot.png" class="h-100 m-auto rounded shadow-lg">
 
 <!--
 「なぜ CRDT が俺たちの魂を震えさせるのか」的な記事
@@ -139,7 +139,7 @@ CRDT やるなら読んでおきたい https://josephg.com/blog/crdts-are-the-fu
 - それ以外の複雑なデータが含まれる場合は **CRDT を検討する価値がある**
 - 中央サーバーなしで、 P2P でやりとりしたければ CRDT
 
-Henry では、文書内に埋め込みできるデータがリッチであったり、多様なコンテンツを共同編集可能にしたかったため、 CRDT を検討して採用した。
+Henry では、文書内に埋め込みできるデータがリッチであったり、多様なコンテンツを共同編集可能にしたかったため、 CRDT を検討して採用した
 
 ---
 
@@ -170,19 +170,6 @@ layout: section
 # ライブラリの紹介
 
 ## Yjs と周辺ライブラリ
-
----
-
-# ライブラリの紹介
-
-周辺のライブラリを合わせて説明することで、 Yjs はどういう責務を担っているかを説明する
-
-<figure>
-  <img src="images/libraries.png" class="w-130 m-auto">
-  <figcaption>
-    Yjs / ProseMirror / y-prosemirror / lib0 の関係
-  </figcaption>
-</figure>
 
 ---
 
@@ -257,7 +244,7 @@ Yjs と ProseMirror の状態を同期してくれるライブラリ
 
 これを使えば、基本的にはエディタの機能を開発するときは ProseMirror のことだけを考えれば良いが、以下の点に注意する必要がある
 
-- 両者の操作を相互に変換して適用するのではなくて、差分を検知して埋めるアルゴリズムのため、実際にエディタで操作したのとは違う形で Yjs に変更が加えられることがある
+- 両者の操作を相互に変換して適用するのではなくて、両者の差分を検知して埋めるアルゴリズムのため、実際にエディタで操作したのとは違う形で Yjs に変更が加えられることがある
 - ProseMirror と Yjs のデータ構造には完全な互換性はないので、同期すると壊れる可能性がある
   - 例えば、同じ場所に同じ名前の Mark を複数つけることはできない
 
@@ -277,11 +264,11 @@ Yjs の作者が作っている便利ライブラリで、Yjs 内で主に encod
 
 # lib0
 
-JSON と違って、エンコードする側とデコードする側の両方が、どういう順序でどういうデータが入っているかを知っている必要がある
+JSON と違って、エンコードする側とデコードする側の両方が、どういう順序でどういう型のデータが入っているかを知っている必要がある
 
 <figure>
 
-```js {all|1-4|6-10|11-13|14-18}
+```ts {all|1-4|6-10|11-13|14-18}
 import encoding from "lib0/encoding";
 import decoding from "lib0/decoding";
 
@@ -306,6 +293,19 @@ for (const i = 0; i < length; i++) { // 読み取った長さ分だけループ�
 </figure>
 
 ---
+
+# ライブラリの関係性
+
+周辺のライブラリと合わせて、 Yjs はどういう責務を担っているかを整理
+
+<figure>
+  <img src="/images/libraries.png" class="w-130 m-auto">
+  <figcaption>
+    Yjs / ProseMirror / y-prosemirror / lib0 の関係
+  </figcaption>
+</figure>
+
+---
 layout: section
 ---
 
@@ -317,12 +317,12 @@ layout: section
 
 # CRDT の内部構造
 
-StructStore → Tree → XML の 3層構造
+StructStore → Tree → XML の3層構造をイメージ
 
 エディタから見たらただの XML を操作しているように見えるが、その裏側に2つの層がある
 
 <figure class="mt-15">
-  <img src="images/crdt-layers.png" class="h-60 m-auto">
+  <img src="/images/crdt-layers.png" class="h-60 m-auto">
   <figcaption>
     3つの層のイメージ図
   </figcaption>
@@ -339,7 +339,7 @@ StructStore → Tree → XML の 3層構造
   - (効率化のために連続する文字が一つの要素に入る場合もある)
 
 <figure class="mt-4">
-  <img src="images/crdt-tree.png" class="h-65 m-auto">
+  <img src="/images/crdt-tree.png" class="h-65 m-auto">
   <figcaption>
     Parent / Left / Right への参照をもつ木構造
   </figcaption>
@@ -354,13 +354,14 @@ Tree の各要素である Item をクライアントごとに順番に積み上
 <!-- `type StructStore = new Map<number, Item[]>` -->
 
 - 各 Item は ID = { clientID, clock } を持つ
-  - クライアントごとに初期化時にランダムな数字で clientID が振られ、操作ごとに clock が1ずつ増える。Parent などはそれぞれ参照先の ID として持つ。
+  - クライアントごとに初期化時にランダムな数字で clientID が振られ、操作ごとに clock が1ずつ増える
+  - Parent などは参照は、参照先の ID として持つ
 - これを integrate することで、 Tree が得られる
 
 <figure class="mt-4">
-  <img src="images/crdt-client-structs.png" class="h-60 m-auto" style="transform: translateX(40px)">
+  <img src="/images/crdt-client-structs.png" class="h-60 m-auto" style="transform: translateX(40px)">
   <figcaption>
-    StructStore(各要素がItem)、今の clientID は 111
+    clientID = 111 の StructStore(各要素がItem)
   </figcaption>
 </figure>
 
@@ -368,15 +369,15 @@ Tree の各要素である Item をクライアントごとに順番に積み上
 
 # 追記の挙動
 
-文字の入力や Map の set など、削除以外は全て追記
+文字の入力や YMap.set など、削除以外は全て追記
 
 <!-- 以下では、複数のクライアントがネットワークを通じてつながっている状態を想定 -->
 
-- 文字を入力した場所から Parent / Left / Right の ID を計算して、入力内容を含めて Item を生成する
+- 文字を入力した場所から Parent / Left / Right の ID を探して、入力内容を合わせて Item を生成する
 - StructStore の自身の clientID の配列に、作った Item を追加する
 - Integrate して Tree を構築して、XML が更新される
 
-もし全く同じ Left に対して文字が挿入されたら、clientID が小さい方が先に Left に来るというルールを設けることで、一意に Tree の状態が決まる。
+もし全く同じ Left に対して文字が挿入されたら、clientID が小さい方が先に Left に来るというルールを設けることで、一意に Tree の状態が決まる
 
 ---
 
@@ -388,7 +389,7 @@ Tree の各要素である Item をクライアントごとに順番に積み上
   - Undo は同じ操作を追記する形で実装されている
 
 <figure class="mt-4">
-  <img src="images/crdt-delete.png" class="h-65 m-auto">
+  <img src="/images/crdt-delete.png" class="h-65 m-auto">
   <figcaption>
     削除した範囲を表すデータを <strong>DeleteSet</strong> と呼ぶ
   </figcaption>
@@ -444,7 +445,7 @@ ws.on("message", (message) => {
 - 自身がどこまでのデータを持っているかを表す軽量なデータである StateVector を使って、お互いの差分のみを送り合うことができる
 
 <figure class="relative -top-4 -z-1">
-  <img src="images/sync-protocol.png" class="h-70 m-auto">
+  <img src="/images/sync-protocol.png" class="h-70 m-auto">
   <figcaption>
     sync1 を送り sync2 を受け取るのを、両者で行う
   </figcaption>
@@ -514,7 +515,7 @@ const ydoc2 = Y.createDocFromSnapshot(ydoc, snapshot); // snapshot が指す地�
 GC を有効にすることで、削除されたデータの内容を消して、さらに連続した削除を一つ目にまとめて省スペース化できる
 
 <figure class="relative -top-6 -z-1">
-  <img src="images/gc.png" class="h-70 m-auto">
+  <img src="/images/gc.png" class="h-70 m-auto">
   <figcaption>
     GC の動作例
   </figcaption>
@@ -583,6 +584,7 @@ Y.applyUpdateV2(ydoc, v2);
   - move 操作の開発が進んでいるので改善されることを期待
 - 連続する文字を一つのワードとして扱うことでの省スペース化されている
 - IME を使った入力では、追加と削除が繰り返されるため、英語よりデータ量が大きくなりがち
+- 誰がどういう変更をしたかを知りたい場合は、clientID とアプリケーションのユーザーIDを紐づけて、DeleteSet もユーザーごとに管理する必要がある
 
 ---
 
@@ -590,20 +592,17 @@ Y.applyUpdateV2(ydoc, v2);
 
 Rust (WebAssembly) 化が進行中
 
-- 基本的な機能はきっちり動くし、パフォーマンスも実用レベルだが
-- 大きな StructStore に対して繰り返し処理が行われるため、v8 の最適化に依存して処理速度が大きく変更したりする
+Yjs は基本的な機能はきっちり動くし、パフォーマンスも実用レベルだが、大きな StructStore に対して繰り返し処理が行われるため v8 の最適化に依存して処理速度が大きく変更したりする
 
 安定して高パフォーマンスが出せ、別の言語でも binding できるように Rust (WebAssembly) 化が進んでいる
 
 https://github.com/y-crdt/y-crdt
 
-Yjs のバイナリと互換性があるので置き換えやすく、 Python や Rubu の binding も開発されているので、CRDT を採用できる幅が広がることに期待
+Yjs のバイナリと互換性があるので置き換えやすく、 Python や Ruby の binding も開発されているので、CRDT を採用できる幅が広がることに期待
 
 ---
 
 # まとめ
-
-自分が CRDT(Yjs) を使った開発を始める前に知っていたかった知識をまとめた
 
 - 単純なテキスト以上の複雑なデータを共同編集したい場合や、 P2P にしたい場合は、CRDT が有力な選択肢になる
 - CRDT のコアは、 Parent / Left / Right への参照を持った木構造
@@ -618,7 +617,7 @@ Yjs のバイナリと互換性があるので置き換えやすく、 Python �
 Henry では一緒に開発してくれる仲間を募集しています
 
 <figure class="">
-  <img src="images/wantedly.png" class="h-90 m-auto">
+  <img src="/images/wantedly.png" class="h-90 m-auto">
   <figcaption>
     少しでも気になった方は <a href="https://www.wantedly.com/projects/1079121">Wantedly</a> か <a href="https://meety.net/matches/eFnLiEtmwEuI">Meety</a> まで
   </figcaption>
