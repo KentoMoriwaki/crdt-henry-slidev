@@ -30,10 +30,6 @@ title: わかった気になる<br/>CRDT を使った共同編集
   </a>
 </div>
 
-<!--
-これ編集できるの？
--->
-
 ---
 
 # 背景とゴール
@@ -124,10 +120,6 @@ Conflict-free replicated data type
 CRDT やるなら読んでおきたい https://josephg.com/blog/crdts-are-the-future/
 
 <img src="/images/crdt-screenshot.png" class="h-100 m-auto rounded shadow-lg">
-
-<!--
-「なぜ CRDT が俺たちの魂を震えさせるのか」的な記事
--->
 
 ---
 
@@ -351,8 +343,6 @@ StructStore → Tree → XML の3層構造をイメージ
 
 Tree の各要素である Item をクライアントごとに順番に積み上げたもの
 
-<!-- `type StructStore = new Map<number, Item[]>` -->
-
 - 各 Item は ID = { clientID, clock } を持つ
   - クライアントごとに初期化時にランダムな数字で clientID が振られ、操作ごとに clock が1ずつ増える
   - Parent などは参照は、参照先の ID として持つ
@@ -370,8 +360,6 @@ Tree の各要素である Item をクライアントごとに順番に積み上
 # 追記の挙動
 
 文字の入力や YMap.set など、削除以外は全て追記
-
-<!-- 以下では、複数のクライアントがネットワークを通じてつながっている状態を想定 -->
 
 - 文字を入力した場所から Parent / Left / Right の ID を探して、入力内容を合わせて Item を生成する
 - StructStore の自身の clientID の配列に、作った Item を追加する
