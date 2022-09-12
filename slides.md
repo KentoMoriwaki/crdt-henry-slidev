@@ -1,9 +1,9 @@
 ---
 theme: default
-background: https://source.unsplash.com/collection/94734566/1920x1080
+background: images/title-bg.jpg
 class: text-center
 highlighter: shiki
-lineNumbers: false
+lineNumbers: true
 info: |
   ## Slidev Starter Template
   Presentation slides for developers.
@@ -12,29 +12,25 @@ info: |
 drawings:
   persist: false
 css: unocss
-title: わかった気になる<br/>CRDT にを使った共同編集
+title: わかった気になる<br/>CRDT を使った共同編集
 ---
 
 # わかった気になる<br/>CRDT を使った共同編集
 
 <div class="pt-12">
-  <span @click="$slidev.nav.next" class="px-2 py-1 rounded cursor-pointer" hover="bg-white bg-opacity-10">
-    KentoMoriwaki / Henry, inc.
+  <span class="px-2 py-1 rounded cursor-pointer">
+    Kento Moriwaki / <a href="https://twitter.com/kento_trans_lu">@kento_trans_lu</a> / Henry, inc.
   </span>
 </div>
 
 <div class="abs-br m-6 flex gap-2">
-  <button @click="$slidev.nav.openInEditor()" title="Open in Editor" class="text-xl icon-btn opacity-50 !border-none !hover:text-white">
-    <carbon:edit />
-  </button>
-  <a href="https://github.com/slidevjs/slidev" target="_blank" alt="GitHub"
+  <a href="https://github.com/KentoMoriwaki/crdt-henry-slidev" target="_blank" alt="GitHub"
     class="text-xl icon-btn opacity-50 !border-none !hover:text-white">
     <carbon-logo-github />
   </a>
 </div>
 
 <!--
-The last comment block of each slide will be treated as slide notes. It will be visible and editable in Presenter Mode along with the slide. [Read more in the docs](https://sli.dev/guide/syntax.html#notes
 これ編集できるの？
 -->
 
@@ -42,37 +38,31 @@ The last comment block of each slide will be treated as slide notes. It will be 
 
 # 背景とゴール
 
-- アプリケーション開発をしていると「この機能を共同編集にしたいな」っていう場面はよくある。
-- 「でも作ったことないし、ロジックも複雑そうだな」とハードルが高くて、優先度を上げられない。
+- アプリケーション開発をしていると「この機能を共同編集にしたいな」っていう場面はよくある
+- 「でも作ったことないし、ロジックも複雑そうだな」とハードルが高くて、優先度を上げられない
 
-## 「自分も作れそう」と思ってほしい
+## 「自分でも共同編集作れそう」と思ってほしい
 
-その中でも OT がよく紹介されていて、CRDT はあまり情報がなかったりするので OT を選択することが多いが、CRDT も現実的な選択肢であることを知ってほしい
-
-<!--
-You can have `style` tag in markdown to override the style for the current page.
-Learn more: https://sli.dev/guide/syntax#embedded-styles
--->
+その上で共同編集の技術としてよく紹介されている OT だけでなく、 CRDT も現実的な選択肢であることを知ってほしい
 
 <style>
-h1 {
+h2 {
   /*  */
 }
 </style>
 
 ---
-layout: image-right
-image: https://source.unsplash.com/collection/94734566/1920x1080
----
 
-# 今作っているもの
+# Henry ではクラウド電子カルテを作っています
 
-Henry では、Web ベースの電子カルテを作っています。
+多機能なブロックの埋め込み / 編集履歴 / 複数人での共同編集 / Draft.js からの移行、など
 
-- 多機能なブロックの埋め込み
-- 編集履歴
-- 複数人での共同編集
-- Draft.js からの移行
+<figure>
+  <img src="images/henry-wip.png" class="w-130 m-auto rounded shadow-lg">
+  <figcaption>
+    開発中のカルテ画面
+  </figcaption>
+</figure>
 
 ---
 layout: section
@@ -97,9 +87,9 @@ layout: section
 
 Operational transformation
 
-シンプルなテキストを共同編集するための技術で、30年ほどの歴史がある。
+シンプルなテキストを共同編集するための技術で、30年ほどの歴史がある
 
-簡単にいうと、何文字目にどういう操作をしたのかの歴史を持っておくことで、このタイミングで5文字目に文字を挿入したってことは、その間にそれより前に3文字挿入されているから、8文字目に挿入するのが正解だな、という計算を行うこと。
+簡単にいうと、何文字目にどういう操作をしたのかの歴史を持っておくことで、このタイミングで5文字目に文字を挿入したってことは、その間にそれより前に3文字挿入されているから 8文字目に挿入するのが正解だな、という計算を行うこと
 
 - 直感的で素直な実装だが、複雑なデータ構造や操作を扱おうとすると、どんどん実装が複雑になってしまう
 - 基本的には中央サーバーが必要
@@ -376,114 +366,174 @@ Tree の各要素である Item をクライアントごとに順番に積み上
 
 ---
 
-# 追記 の挙動
+# 追記の挙動
 
-- 自身の clientID に操作を追記していく
-- 追記した分のデータを他の Client に送る
-- ClientStruct と呼ぶ
+文字の入力や Map の set など、削除以外は全て追記
 
-ネットワークで二つの client が繋がっていることを想定する
+<!-- 以下では、複数のクライアントがネットワークを通じてつながっている状態を想定 -->
 
-Client-Server 方式や、 P2P など幅広い選択肢が取れる。
+- 文字を入力した場所から Parent / Left / Right の ID を計算して、入力内容を含めて Item を生成する
+- StructStore の自身の clientID の配列に、作った Item を追加する
+- Integrate して Tree を構築して、XML が更新される
 
-二つの Client(Server) がある時、両者が同じデータを持っている状態にするプロトコル。
-
----
-
-# 削除
-
-- これだけ追記じゃなくて、削除フラグを立てることになっている
-- DeleteSet の説明
-
-追記していくだけと書いたが、主にパフォーマンスの観点から、削除は追記じゃない。
-
-削除された要素に、削除フラグを立てる。
-
-なので、削除されたデータは残り続けるので、Garbage collection する必要がある（後述）。
-
-## DeleteSet の構造
-
-ここからここは削除しました、というデータ。
+もし全く同じ Left に対して文字が挿入されたら、clientID が小さい方が先に Left に来るというルールを設けることで、一意に Tree の状態が決まる。
 
 ---
 
-# Update
+# 削除の挙動
 
-追記と削除をまとめたものの名称
+- 効率性観点から、削除は追記でなく StructStore のデータに直接 deleted のフラグを立てる
+  - 自身の clientID 以外の Item も直接変更して deleted にする
+- 一度削除されたものがもう一度復活することはないので、削除の操作がコンフリクトすることはない
+  - Undo は同じ操作を追記する形で実装されている
 
-基本的には、これがネットワーク上を飛び交う。
-
-`Y.logUpdate` で中身を確認できる。
-
----
-
-# 同期
-
-初回の読み込みや、再接続時に完全にデータを同期するプロトコルは？
-
-素直にやるなら、両方のデータを merge すればよさそうだが、状態の全てを送り合うのは無駄が多いので、差分だけ送れる仕組みがある。
-
-## StateVector の説明
-
-わたしはこれだけの状態を持っています、を表すデータ。
+<figure class="mt-4">
+  <img src="images/crdt-delete.png" class="h-65 m-auto">
+  <figcaption>
+    削除した範囲を表すデータを <strong>DeleteSet</strong> と呼ぶ
+  </figcaption>
+</figure>
 
 ---
 
-# 同期プロトコルの図
+# 追記 + 削除 = Update
 
+Items と DeleteSet をまとめて Update と呼ぶ
 
-図の簡略化のために一方向だけ書いたが、両者が同時に sync1 を送信する
+Update が他のクライアントに反映されるまでの流れは以下のよう
 
-同期が完了したら、あとはその都度変更を送信しあう。
+- 一回の操作 (Transaction) で生成された Update を lib0/encoding でエンコードして、バイナリデータを生成
+- そのデータを中央サーバーに、もしくは P2P なら接続中の全てのクライアントに送る
+- 受け取ったクライアントはそれをデコードして、StructStore に Item を追記してから、DeleteSet が示す範囲に削除フラグを立てる
 
----
+`Y.logUpdate` を使えば、Update の中身を確認できる
 
-# データの永続化
+<figure>
 
-今のままでは、メモリ上に展開されているデータだけなので、リロードしたり再起動したら消えてしまう。
-
-保存はすごく単純で、全ての状態を Update として書き出すだけ。
-
-リストアは、その Update を適用すれば良いだけ。
-
-
----
-
-# 編集履歴
-
-State の特定の地点を表すデータ。これがあれば、その地点の状態まで戻ることができる。
-
-## StateVector との違い
-
-StateVector は削除された範囲に関する情報を持っていないため、その状態に完全に戻ることはできない。
-
-Snapshot = StateVector + DeleteSet
-
----
-
-# Garbage Collection
-
-先述した通り、削除の操作は削除フラグを付けるだけで、データはずっと残っている。
-それにより Snapshot があれば、完全に特定の状態を再現することができる。
-
-しかしそれだとデータがどんどん肥大化してしまい、転送が遅くなったり、操作が遅くなってしまう。
-そこで、削除された要素の中身を消去して圧縮することができる。
+<div class="grid grid-cols-2 gap-x-8">
+  <div>
 
 ```ts
-const ydoc = new Y.Doc({ gc: true })
+ydoc.on("update", (update: Uint8Array) => {
+  Y.logUpdate(update);
+  ws.send(update);
+});
 ```
+  </div>
+  <div>
 
-処理速度とメモリのトレードオフ
+```ts
+ws.on("message", (message) => {
+  const update = new Uint8Array(message.data);
+  Y.logUpdate(update);
+  Y.applyUpdate(ydoc, update);
+});
+```
+  </div>
+</div>
+<figcaption>送信側(左)と受信側(右)のコード例</figcaption>
+</figure>
 
-基本方針
-- クライアントのようは揮発性の高いデータは、 GC を使わない。もちろんメモリがシビアな場合はやってもよい。Undo のデータも保持するので、GC は効果が小さい。
-- サーバーサイドでそのまま永続化するようなデータに関しては GC しておかないと、どんどんゴミデータが溜まって肥大化する
+---
+
+# 差分同期
+
+初回の読み込み時や、再接続時に完全にデータを同期する効率的なプロトコル
+
+- 素直にやるなら両者の StructStore を merge すれば良いが、差分が小さい時には非効率的
+- 自身がどこまでのデータを持っているかを表す軽量なデータである StateVector を使って、お互いの差分のみを送り合うことができる
+
+<figure class="relative -top-4 -z-1">
+  <img src="images/sync-protocol.png" class="h-70 m-auto">
+  <figcaption>
+    sync1 を送り sync2 を受け取るのを、両者で行う
+  </figcaption>
+</figure>
+
+---
+
+# 状態の永続化
+
+- StructStore に入っているすべての Item と、そこから抜き出した DeleteSet を含む Update をエンコードするだけ。逆にリストアは、その Update を適用すれば良い
+- ブラウザ上なら、IndexedDB に保存しておけばオフライン状態でもデータを失うことはない
+  - localStorage だと容量的に厳しいかも
+- サーバーなら、S3 などのオブジェクトストレージに突っ込んでもいいし、高速にアクセスできる Redis に入れるなど、要件に応じて自由に決められる
+- 内容を全文検索したい場合などは、Yjs から好みのデータに変換するコードを書く
+
+<figure class="mt-4">
+
+```ts
+// State をエンコードして、S3 に保存
+const update: Uint8Array = Y.encodeStateAsUpdate(ydoc);
+await s3.upload(id, update);
+
+// S3 から読み込んだデータを、空の YDoc に適用することで、復元完了
+const ydoc = new Y.Doc();
+const update = await s3.get(id)
+Y.applyUpdate(ydoc, update);
+```
+  
+  <figcaption>
+    状態の永続化とリストアのコード例
+  </figcaption>
+</figure>
+
+---
+
+# Snapshot による編集履歴
+
+- StructStore には全ての変更内容が蓄積されているため、理論的にはあらゆる地点の状態に戻れる
+- どの地点かを表すデータを Snapshot と呼び、 StateVector と DeleteSet で構成されている
+  - StateVector だけではどの Item が削除されたか分からないので、DeleteSet が必要
+  - 地点を表すだけで内容を含まないので軽量
+
+<figure class="mt-4">
+
+```ts
+const snapshot = Y.snapshot(ydoc); // ある地点の snapshot を作成
+await db().saveSnapshot(Y.encodeSnapshot(snapshot), new Date()); // DB などに時間と共に保存する
+
+// 履歴の復元
+const snapshot = Y.decodeSnapshot(encodedSnapshot); // 保存された snapshot をデコード
+const ydoc2 = Y.createDocFromSnapshot(ydoc, snapshot); // snapshot が指す地点の状態を復元 
+```
+  <figcaption>
+    Snapshot の利用例
+  </figcaption>
+</figure>
+
 
 ---
 
 # Garbage Collection
 
-Snapshot も使いながら、 Garbage Collection するなら、オンデマンド実行がおすすめ。
+削除された Item を忘れて軽量化
+
+削除されたデータも残り続けるため Snapshot のような便利な機能が使えるが、データの肥大化によりネットワークの転送時間が増えたり、処理が遅くなるなど、ユーザー体験に悪影響を及ぼす可能性がある
+
+GC を有効にすることで、削除されたデータの内容を消して、さらに連続した削除を一つ目にまとめて省スペース化できる
+
+<figure class="relative -top-6 -z-1">
+  <img src="images/gc.png" class="h-70 m-auto">
+  <figcaption>
+    GC の動作例
+  </figcaption>
+</figure>
+
+---
+
+# Garbage Collection
+
+処理速度・メモリ使用量・転送速度・利便性のトレードオフ
+
+- ブラウザのようなで揮発性が高い場合は、GC を使わなくてもよい
+  - Undo に必要なデータは GC が有効でも保持されるので、GC の効果が小さい
+- サーバーサイドで永続化するようなデータに関しては GC を有効にすべきだが、 Snapshot は使えない
+- Snapshot も同時に使いたいなら、オンデマンド実行がおすすめ
+  - 普段は GC を無効にしておいて、永続化の前に GC を有効にした YDoc を通してエンコードする
+  - Snapshot から復元する際、別で保存しておいた GC 実行する前のデータに対して適用する
+
+<figure class="mt-4">
 
 ```ts
 function gc(ydoc: Y.Doc): Uint8Array {
@@ -493,20 +543,24 @@ function gc(ydoc: Y.Doc): Uint8Array {
   return Y.encodeStateAsUpdate(tmpDoc);
 }
 ```
-
-保存する前など任意のタイミングで実行して、元のデータとは別の場所に保存しておく。
+  <figcaption>
+    GC のオンデマンド実行の例
+  </figcaption>
+</figure>
 
 ---
 
 # Format v1/v2
 
-二種類のメッセージのフォーマットのバージョンが存在している。
+Item のバイナリのフォーマットが2バージョン存在している
 
-内部の Tree の状態などは同じで、ただ単に encode / decode するメッセージのフォーマットが違うだけ。
-なので、同じ Doc に v1 と v2 のメッセージを適用しても問題ないが、そのメッセージがどちらのフォーマットなのかは知っておく必要がある。
-メッセージ自体も相互変換は可能だが、コストがかかるので、どちらかに合わせる。
-デフォルトは v1 なので、v2 の方が高パフォーマンスなので、v2 を使う。
-何も考えずにサンプルとか、関連ライブラリを使うと v1 を使うことになるので気をつける。
+- 基本的にはより効率化された v2 フォーマットを使えばよい
+- バイナリのフォーマットが違うだけで、それを取り込んだ内部の StructStore や Tree は同じ状態になるので、共存することは可能
+- ただし v1 のフォーマットを v2 用のメソッドで読み込むとエラーになるので、どちらでエンコード・デコードすべきかは決めておく
+  - 相互に変換する関数も用意されているがコストがかかるので、ちゃんと揃えておく
+- デフォルトは v1 で、何も考えずにサンプルや関連ライブラリを使うと v1 を使うことになるので気をつける
+
+<figure class="mt-4">
 
 ```js
 const v1 = Y.encodeStateAsUpdate(ydoc);
@@ -514,25 +568,36 @@ const v2 = Y.encodeStateAsUpdateV2(ydoc);
 Y.applyUpdate(ydoc, v1);
 Y.applyUpdateV2(ydoc, v2);
 ```
+  <figcaption>
+    V2 suffix がついた関数を使う
+  </figcaption>
+</figure>
+
+---
 
 # その他の注意点
 
-ユーザーの一般的な操作に操作に対して最適化されているので、変な操作をするロジックを書くとめっちゃ遅くなることがある。
-
-例えば、一度の transaction で大量の範囲を書き換えるなど。
+- ユーザーの一般的な操作に対して最適化されているので、変な操作をするロジックを書くとすごく時間がかかる場合がある
+  - 例えば、一度の transaction で大量の範囲を書き換えるなど
+- 改行の操作は、行の後を削除して、次の行に追加する操作で、コストが高い
+  - move 操作の開発が進んでいるので改善されることを期待
+- 連続する文字を一つのワードとして扱うことでの省スペース化されている
+- IME を使った入力では、追加と削除が繰り返されるため、英語よりデータ量が大きくなりがち
 
 ---
 
 # Yjs の未来
 
-基本的な機能はできているし、パフォーマンスも十分に高速。
-特定の操作を高速化する改善などが進んでいる（要素の Move など）。
+Rust (WebAssembly) 化が進行中
 
-また多数の繰り返し処理が行われて v8 の最適化に依存して処理速度が大きく変わったりする。
+- 基本的な機能はきっちり動くし、パフォーマンスも実用レベルだが
+- 大きな StructStore に対して繰り返し処理が行われるため、v8 の最適化に依存して処理速度が大きく変更したりする
 
-安定して高パフォーマンスが出せたり、別の言語でも binding できるように Rust(WebAssembly)化が進んでいる。
+安定して高パフォーマンスが出せ、別の言語でも binding できるように Rust (WebAssembly) 化が進んでいる
 
-Yjs のメッセージと互換性がある Rust 実装の yrs の開発が進んでいて、より多くの場面で採用できる幅が広がる。
+https://github.com/y-crdt/y-crdt
+
+Yjs のバイナリと互換性があるので置き換えやすく、 Python や Rubu の binding も開発されているので、CRDT を採用できる幅が広がることに期待
 
 ---
 
@@ -540,26 +605,22 @@ Yjs のメッセージと互換性がある Rust 実装の yrs の開発が進�
 
 自分が CRDT(Yjs) を使った開発を始める前に知っていたかった知識をまとめた
 
-- 単純なテキスト以上の複雑なデータを共同編集したい場合や、 P2P にしたい場合は　CRDT が有力な選択肢になる
-- CRDT は Parent / Left / Right への参照を持った木構造への操作を蓄積したもの
-- State(Update) / ClientSet / DeleteSet / StateVector / Snapshot などのデータ構造と意味を理解しておく
-- ProseMirror <-> Yjs は自動だが、予期せぬ挙動を起こす場合がある。
-- Garbage Collection を有効にするかどうかは場面に応じて検討する。
-- yrs に期待
+- 単純なテキスト以上の複雑なデータを共同編集したい場合や、 P2P にしたい場合は、CRDT が有力な選択肢になる
+- CRDT のコアは、 Parent / Left / Right への参照を持った木構造
+- Item / StructStore / DeleteSet / StateVector / Snapshot などのデータ構造と意味を理解して使いこなす
+- Garbage Collection を有効にするかどうかは場面に応じて判断する
+- Y CRDT の開発に期待
 
 ---
 
 # 最後に
 
-- サーバーサイドも色々とトピックがあるので、どこかで話したい。
-- ぜひお声がけください
+Henry では一緒に開発してくれる仲間を募集しています
 
+<figure class="">
+  <img src="images/wantedly.png" class="h-90 m-auto">
+  <figcaption>
+    少しでも気になった方は <a href="https://www.wantedly.com/projects/1079121">Wantedly</a> か <a href="https://meety.net/matches/eFnLiEtmwEuI">Meety</a> まで
+  </figcaption>
+</figure>
 
----
-layout: center
-class: text-center
----
-
-# Learn More
-
-[Documentations](https://sli.dev) · [GitHub](https://github.com/slidevjs/slidev) · [Showcases](https://sli.dev/showcases.html)
