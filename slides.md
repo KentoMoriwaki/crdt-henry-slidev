@@ -5,17 +5,19 @@ class: text-center
 highlighter: shiki
 lineNumbers: true
 info: |
-  ## Slidev Starter Template
-  Presentation slides for developers.
+  ## わかった気になれる CRDT を使った共同編集
+  
+  このプレゼンテーションは、2022-09-13 に行われた [【VideoTouch ＆ Henry】とあるフロントエンド勉強会](https://henry.connpass.com/event/258484/) で発表されたものです
 
-  Learn more at [Sli.dev](https://sli.dev)
+  Author [KentoMoriwaki](https://twitter.com/kento_trans_lu)
+
 drawings:
   persist: false
 css: unocss
-title: わかった気になる<br/>CRDT を使った共同編集
+title: わかった気になれる<br/>CRDT を使った共同編集
 ---
 
-# わかった気になる<br/>CRDT を使った共同編集
+# わかった気になれる<br/>CRDT を使った共同編集
 
 <div class="pt-12">
   <span class="px-2 py-1 rounded cursor-pointer">
@@ -75,7 +77,7 @@ layout: section
 - 複数人のユーザーが一つの文書を操作したときに、全ての操作がそれぞれのユーザーに行き渡ったときに、全てのユーザーが見ている文書が全く同じであることが求められる
   - 同じ場所に同時に文字を入れても、文字の順番が入れ替わってはいけない
 
-いくつも技術があるが、ここでは最も多く使われているであろう OT と、今回紹介したい CRDT を説明する
+いくつかこれを解決する技術があるが、ここでは最も知られているであろう OT と、今回紹介したい CRDT について紹介する
 
 ---
 
@@ -301,7 +303,7 @@ for (const i = 0; i < length; i++) { // 読み取った長さ分だけループ�
 layout: section
 ---
 
-# 内部構造と基本的な操作
+# CRDT の内部構造と操作
 
 どういう操作をすると、どのようなデータがやりとりされるのかを理解する
 
